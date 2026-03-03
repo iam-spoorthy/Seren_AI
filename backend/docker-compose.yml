@@ -1,0 +1,134 @@
+services:
+  # === FRONTEND SERVICE ===
+  # React frontend served via Nginx
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:5000/api
+        - VITE_ELEVENLABS_AGENT_ID=agent_1801khjj171qegrvbqxzqvcmzm2t
+    container_name: serenai_frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - mindwise_network
+
+  # === BACKEND SERVICE ===
+  # Express.js backend application
+  backend:
+    # Build from Dockerfile in current directory
+    build: .
+    
+    # Container name for easy reference
+    container_name: serenai_backend
+    
+    # Port mapping: expose port 5000 inside container to port 5000 on host
+    ports:
+      - "5000:5000"
+    
+    # Environment variables from .env file
+    env_file:
+      - .env
+    
+    # Override any specific environment variables
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://mongo:27017/serenai_db
+      - REDIS_URL=redis://redis:6379
+      - FRONTEND_URL=http://localhost
+    
+    # Restart policy: always restart unless manually stopped
+    restart: unless-stopped
+    
+    # Services this depends on - MongoDB must start first
+    depends_on:
+      - mongo
+      - redis
+    
+    # Network this service connects to
+    networks:
+      - mindwise_network
+
+  # === MONGODB SERVICE ===
+  # NoSQL database for storing user data, assessments, chat history, journals, moods
+  mongo:
+    # Pull official MongoDB image
+    image: mongo:latest
+    
+    # Container name
+    container_name: serenai_mongo
+    
+    # Port mapping: MongoDB runs on port 27017
+    ports:
+      - "27017:27017"
+    
+    # Volume: persist MongoDB data even if container is deleted
+    # Without this, data is lost when container stops
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    
+    # Restart unless manually stopped
+    restart: unless-stopped
+    
+    # Network connection
+    networks:
+      - mindwise_network
+    
+    # Environment variables for MongoDB
+    environment:
+      - MONGO_INITDB_DATABASE=serenai_db
+
+  # === REDIS SERVICE ===
+  # In-memory data store for caching and sessions
+  # Improves performance by storing frequently accessed data in memory
+  redis:
+    # Pull official Redis image
+    image: redis:latest
+    
+    # Container name
+    container_name: serenai_redis
+    
+    # Port mapping: Redis runs on port 6379
+    ports:
+      - "6379:6379"
+    
+    # Command: run Redis with password for security
+    command: redis-server --appendonly yes
+    
+    # Volume: persist Redis data
+    volumes:
+      - redis_data:/data
+    
+    # Restart unless manually stopped
+    restart: unless-stopped
+    
+    # Network connection
+    networks:
+      - mindwise_network
+
+# === VOLUMES ===
+# Named volumes for persistent data
+volumes:
+  # MongoDB data volume
+  mongo_data:
+    driver: local
+  
+  # MongoDB config volume
+  mongo_config:
+    driver: local
+  
+  # Redis data volume
+  redis_data:
+    driver: local
+
+# === NETWORKS ===
+# Define custom network for service communication
+networks:
+  # Bridge network allows services to communicate by service name
+  mindwise_network:
+    driver: bridge
