@@ -70,7 +70,7 @@ Create a .env file in backend/:
 
 ```bash
 PORT=5000
-MONGO_URL=mongodb://localhost:27017/mindwise_db
+MONGO_URL=mongodb://localhost:27017/seren_db
 JWT_SECRET=your_random_secret
 GROQ_API_KEY=your_groq_api_key
 # Optional override
@@ -145,5 +145,12 @@ Frontend
 
 ## Notes
 
-- MindWise AI is not a substitute for professional mental health care.
+- Seren AI is not a substitute for professional mental health care.
 - If you enable real deployments, update the frontend API base URL and configure secure secrets.
+
+## Demo Video
+
+Watch a quick walkthrough of Seren AI and its core features including the mental health assessment, AI therapy chat, mood tracking, journaling insights, and breathing exercise.
+
+Demo:  
+https://drive.google.com/file/d/169xFbNyOBTjIPWRE-J9reVXkNK1l06DW/view?usp=sharing
